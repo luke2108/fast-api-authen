@@ -39,7 +39,7 @@ class PostBaseSchema(BaseModel):
     title: str
     content: str
     category: str
-    image: str
+    image: str | None = None
     user_id: uuid.UUID | None = None
 
     class Config:

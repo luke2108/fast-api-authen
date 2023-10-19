@@ -31,7 +31,7 @@ class Post(Base):
     title = Column(String, nullable=False)
     content = Column(String, nullable=False)
     category = Column(String, nullable=False)
-    image = Column(String, nullable=False)
+    image = Column(String, nullable=True)
     created_at = Column(TIMESTAMP(timezone=True),
                         nullable=False, server_default=text("now()"))
     updated_at = Column(TIMESTAMP(timezone=True),

@@ -91,12 +91,12 @@ def login(payload: schemas.LoginUserSchema, response: Response, db: Session = De
         subject=str(user.id), expires_time=timedelta(minutes=REFRESH_TOKEN_EXPIRES_IN))
 
     # Store refresh and access tokens in cookie
-    # response.set_cookie('access_token', access_token, ACCESS_TOKEN_EXPIRES_IN * 60,
-    #                     ACCESS_TOKEN_EXPIRES_IN * 60, '/', None, False, True, 'lax')
-    # response.set_cookie('refresh_token', refresh_token,
-    #                     REFRESH_TOKEN_EXPIRES_IN * 60, REFRESH_TOKEN_EXPIRES_IN * 60, '/', None, False, True, 'lax')
-    # response.set_cookie('logged_in', 'True', ACCESS_TOKEN_EXPIRES_IN * 60,
-    #                     ACCESS_TOKEN_EXPIRES_IN * 60, '/', None, False, False, 'lax')
+    response.set_cookie('access_token', access_token, ACCESS_TOKEN_EXPIRES_IN * 60,
+                        ACCESS_TOKEN_EXPIRES_IN * 60, '/', None, False, True, 'lax')
+    response.set_cookie('refresh_token', refresh_token,
+                        REFRESH_TOKEN_EXPIRES_IN * 60, REFRESH_TOKEN_EXPIRES_IN * 60, '/', None, False, True, 'lax')
+    response.set_cookie('logged_in', 'True', ACCESS_TOKEN_EXPIRES_IN * 60,
+                        ACCESS_TOKEN_EXPIRES_IN * 60, '/', None, False, False, 'lax')
 
     # Send both access
     return {'status': 'success', 'access_token': access_token, 'refresh_token': refresh_token}
