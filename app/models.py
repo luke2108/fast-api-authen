@@ -1,6 +1,6 @@
 import uuid
 from .database import Base
-from sqlalchemy import TIMESTAMP, Column, ForeignKey, String, Boolean, text
+from sqlalchemy import TIMESTAMP, Column, ForeignKey, String, Boolean, text, INTEGER, CHAR
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -37,3 +37,14 @@ class Post(Base):
     updated_at = Column(TIMESTAMP(timezone=True),
                         nullable=False, server_default=text("now()"))
     user = relationship('User')
+
+
+class Category(Base):
+    __tablename__ = 'categories'
+    id = Column(String, primary_key=True, nullable=False)
+    name = Column(String, nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True),
+                        nullable=False, server_default=text("now()"))
+    updated_at = Column(TIMESTAMP(timezone=True),
+                        nullable=False, server_default=text("now()"))
+    last_updated = Column(INTEGER())
