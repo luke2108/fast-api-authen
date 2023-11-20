@@ -2,18 +2,15 @@ import uuid
 from .. import schemas, models
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, status, APIRouter, Response
-from ..database import get_db
 from app.oauth2 import require_user
 from uuid import UUID
 router = APIRouter()
-from fastapi import Depends, APIRouter, HTTPException
-from sqlalchemy.orm import Session
 from ..database import get_db
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 @router.get('/', response_model=schemas.ListPostResponse)
-def get_posts(db: Session = Depends(get_db), limit: int = 100000, page: int = 1, search: str = '', user_id: str = Depends(require_user)):
+def get_posts(db: Session = Depends(get_db), limit: int = 10, page: int = 1, search: str = '', user_id: str = Depends(require_user)):
     skip = (page - 1) * limit
 
     posts = db.query(models.Post).group_by(models.Post.id).filter(
@@ -42,7 +39,7 @@ def get_posts(
                 post.updated_at
             FROM public.posts as post
             INNER JOIN public.users as us ON post.user_id = us.id
-            LIMIT 10000
+            LIMIT 10
         """
         
         # Execute the raw SQL query
