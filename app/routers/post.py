@@ -7,6 +7,13 @@ from app.oauth2 import require_user
 from uuid import UUID
 router = APIRouter()
 
+from fastapi import Depends, APIRouter
+from sqlalchemy.orm import Session
+from ..database import get_db
+from app.oauth2 import require_user
+from fastapi.responses import JSONResponse
+import psycopg2.extras
+from fastapi.encoders import jsonable_encoder
 
 @router.get('/', response_model=schemas.ListPostResponse)
 def get_posts(db: Session = Depends(get_db), limit: int = 100000, page: int = 1, search: str = '', user_id: str = Depends(require_user)):
@@ -15,6 +22,43 @@ def get_posts(db: Session = Depends(get_db), limit: int = 100000, page: int = 1,
     posts = db.query(models.Post).group_by(models.Post.id).filter(
         models.Post.title.contains(search)).limit(limit).offset(skip).all()
     return {'status': 'success', 'results': len(posts), 'posts': posts}
+
+@router.get('/query-string/')
+def get_posts(
+    db: Session = Depends(get_db),
+    limit: int = 100000,
+    page: int = 1,
+    search: str = '',
+    user_id: str = Depends(require_user)
+):
+    skip = (page - 1) * limit
+    raw_sql_query = """
+        SELECT post.title, post.content, post.category, post.image, post.user_id, post.id,
+            json_build_object(
+                'id', us.id,
+                'name', us.name,
+                'email', us.email
+            ) AS user,
+            post.created_at,
+            post.updated_at
+        FROM public.posts as post
+        inner join public.users as us on post.user_id = us.id
+        WHERE post.title ILIKE %s
+        LIMIT %s OFFSET %s
+    """
+
+    with db.connection() as connection:
+        with connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+            cursor.execute(raw_sql_query, [f"%{search}%", limit, skip])
+            
+            columns = [col[0] for col in cursor.description]
+            results = cursor.fetchall()
+
+            data = [dict(zip(columns, row)) for row in results]
+
+            return JSONResponse(content=jsonable_encoder(data), status_code=200)
+
+
 
 @router.post('/', status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
 def create_post(post: schemas.CreatePostSchema, db: Session = Depends(get_db), owner_id: str = Depends(require_user)):
