@@ -63,7 +63,7 @@ class UpdatePostSchema(BaseModel):
     content: Optional[str] = None
     category: Optional[str] = None
     image: Optional[str] = None
-    user_id: uuid.UUID | None = None
+    user_id: Optional[uuid.UUID] = None
 
     class Config:
         orm_mode = True
