@@ -7,7 +7,7 @@ from pydantic import BaseModel, EmailStr, constr
 class UserBaseSchema(BaseModel):
     name: str
     email: EmailStr
-    photo: str
+    # photo: str
 
     class Config:
         orm_mode = True
@@ -17,7 +17,7 @@ class CreateUserSchema(UserBaseSchema):
     password: constr(min_length=8)
     passwordConfirm: str
     role: str = 'user'
-    verified: bool = False
+    verified: bool = True
 
 
 class LoginUserSchema(BaseModel):
