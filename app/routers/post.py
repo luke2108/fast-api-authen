@@ -23,7 +23,17 @@ def get_posts(db: Session = Depends(get_db), limit: int = 100000, page: int = 1,
         models.Post.title.contains(search)).limit(limit).offset(skip).all()
     return {'status': 'success', 'results': len(posts), 'posts': posts}
 
-@router.get('/query-string/')
+from fastapi import Depends, APIRouter, HTTPException
+from sqlalchemy.orm import Session
+from ..database import get_db
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
+from sqlalchemy import text
+import psycopg2.extras
+
+router = APIRouter()
+
+@router.get('/query-string')
 def get_posts(
     db: Session = Depends(get_db),
     limit: int = 100000,
@@ -31,32 +41,34 @@ def get_posts(
     search: str = '',
     user_id: str = Depends(require_user)
 ):
-    skip = (page - 1) * limit
-    raw_sql_query = """
-        SELECT post.title, post.content, post.category, post.image, post.user_id, post.id,
-            json_build_object(
-                'id', us.id,
-                'name', us.name,
-                'email', us.email
-            ) AS user,
-            post.created_at,
-            post.updated_at
-        FROM public.posts as post
-        inner join public.users as us on post.user_id = us.id
-        WHERE post.title ILIKE %s
-        LIMIT %s OFFSET %s
-    """
+    try:
+        skip = (page - 1) * limit
+        raw_sql_query = """
+            SELECT post.title, post.content, post.category, post.image, post.user_id, post.id,
+                json_build_object(
+                    'id', us.id,
+                    'name', us.name,
+                    'email', us.email
+                ) AS user,
+                post.created_at,
+                post.updated_at
+            FROM public.posts as post
+            INNER JOIN public.users as us ON post.user_id = us.id
+            LIMIT 10000
+        """
+        
+        # Execute the raw SQL query
+        results = db.execute(raw_sql_query)
 
-    with db.connection() as connection:
-        with connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(raw_sql_query, [f"%{search}%", limit, skip])
-            
-            columns = [col[0] for col in cursor.description]
-            results = cursor.fetchall()
+        # Fetch the columns and create a list of dictionaries
+        columns = results.keys()
+        data = [dict(zip(columns, row)) for row in results]
 
-            data = [dict(zip(columns, row)) for row in results]
+        return JSONResponse(content=jsonable_encoder(data), status_code=200)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
 
-            return JSONResponse(content=jsonable_encoder(data), status_code=200)
+
 
 
 
