@@ -27,7 +27,7 @@ def get_posts(db: Session = Depends(get_db), limit: int = 1, page: int = 1, sear
 #     user_id: str = Depends(require_user)
 # ):
 def get_posts(
-   
+    db: Session = Depends(get_db),
 ):
     try:
         raw_sql_query = """
@@ -43,7 +43,7 @@ def get_posts(
             INNER JOIN public.users as us ON post.user_id = us.id
             LIMIT 1
         """
-        db: Session = Depends(get_db),
+        
         # Execute the raw SQL query
         results = db.execute(raw_sql_query)
 
