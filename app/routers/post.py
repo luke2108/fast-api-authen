@@ -19,15 +19,17 @@ def get_posts(db: Session = Depends(get_db), limit: int = 1, page: int = 1, sear
 
 
 @router.get('/query-string')
+# def get_posts(
+#     db: Session = Depends(get_db),
+#     limit: int = 100000,
+#     page: int = 1,
+#     search: str = '',
+#     user_id: str = Depends(require_user)
+# ):
 def get_posts(
-    db: Session = Depends(get_db),
-    limit: int = 100000,
-    page: int = 1,
-    search: str = '',
-    user_id: str = Depends(require_user)
+   
 ):
     try:
-        skip = (page - 1) * limit
         raw_sql_query = """
             SELECT post.title, post.content, post.category, post.image, post.user_id, post.id,
                 json_build_object(
@@ -41,7 +43,7 @@ def get_posts(
             INNER JOIN public.users as us ON post.user_id = us.id
             LIMIT 1
         """
-        
+        db: Session = Depends(get_db),
         # Execute the raw SQL query
         results = db.execute(raw_sql_query)
 
