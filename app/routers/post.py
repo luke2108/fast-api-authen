@@ -38,7 +38,7 @@ def get_posts(
             post.created_at,
             post.updated_at
             FROM public.posts as post
-            INNER JOIN public.users as us ON post.user_id = us.id
+            JOIN public.users as us ON post.user_id = us.id
             LIMIT 1
         """
         
