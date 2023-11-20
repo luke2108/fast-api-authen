@@ -32,13 +32,11 @@ def get_posts(
     try:
         raw_sql_query = """
             SELECT post.title, post.content, post.category, post.image, post.user_id, post.id,
-                json_build_object(
-                    'id', us.id,
-                    'name', us.name,
-                    'email', us.email
-                ) AS user,
-                post.created_at,
-                post.updated_at
+            us.id,
+            us.name,
+            us.email,
+            post.created_at,
+            post.updated_at
             FROM public.posts as post
             INNER JOIN public.users as us ON post.user_id = us.id
             LIMIT 1
