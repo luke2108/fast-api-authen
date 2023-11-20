@@ -33,6 +33,7 @@ async def create_user(payload: schemas.CreateUserSchema, request: Request, db: S
             status_code=status.HTTP_400_BAD_REQUEST, detail='Passwords do not match')
     #  Hash the password
     payload.password = utils.hash_password(payload.password)
+    print(payload.password)
     del payload.passwordConfirm
     payload.role = 'user'
     payload.verified = False
@@ -60,7 +61,7 @@ async def create_user(payload: schemas.CreateUserSchema, request: Request, db: S
     #     db.commit()
     #     raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
     #                         detail='There was an error sending email')
-    return {'status': 'success', 'message': 'Verification token successfully sent to your email'}
+    return {'status': 'success', 'message': 'Create successfully'}
 
 
 @router.post('/login')
