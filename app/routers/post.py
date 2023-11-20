@@ -6,14 +6,11 @@ from ..database import get_db
 from app.oauth2 import require_user
 from uuid import UUID
 router = APIRouter()
-
-from fastapi import Depends, APIRouter
+from fastapi import Depends, APIRouter, HTTPException
 from sqlalchemy.orm import Session
 from ..database import get_db
-from app.oauth2 import require_user
-from fastapi.responses import JSONResponse
-import psycopg2.extras
 from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
 
 @router.get('/', response_model=schemas.ListPostResponse)
 def get_posts(db: Session = Depends(get_db), limit: int = 100000, page: int = 1, search: str = '', user_id: str = Depends(require_user)):
@@ -23,15 +20,6 @@ def get_posts(db: Session = Depends(get_db), limit: int = 100000, page: int = 1,
         models.Post.title.contains(search)).limit(limit).offset(skip).all()
     return {'status': 'success', 'results': len(posts), 'posts': posts}
 
-from fastapi import Depends, APIRouter, HTTPException
-from sqlalchemy.orm import Session
-from ..database import get_db
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
-from sqlalchemy import text
-import psycopg2.extras
-
-router = APIRouter()
 
 @router.get('/query-string')
 def get_posts(
@@ -67,10 +55,6 @@ def get_posts(
         return JSONResponse(content=jsonable_encoder(data), status_code=200)
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
-
-
-
-
 
 @router.post('/', status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
 def create_post(post: schemas.CreatePostSchema, db: Session = Depends(get_db), owner_id: str = Depends(require_user)):
