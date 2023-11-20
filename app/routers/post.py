@@ -10,7 +10,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 @router.get('/', response_model=schemas.ListPostResponse)
-def get_posts(db: Session = Depends(get_db), limit: int = 10, page: int = 1, search: str = '', user_id: str = Depends(require_user)):
+def get_posts(db: Session = Depends(get_db), limit: int = 1, page: int = 1, search: str = '', user_id: str = Depends(require_user)):
     skip = (page - 1) * limit
 
     posts = db.query(models.Post).group_by(models.Post.id).filter(
@@ -39,7 +39,7 @@ def get_posts(
                 post.updated_at
             FROM public.posts as post
             INNER JOIN public.users as us ON post.user_id = us.id
-            LIMIT 10
+            LIMIT 1
         """
         
         # Execute the raw SQL query
