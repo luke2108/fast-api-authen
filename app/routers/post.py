@@ -48,8 +48,8 @@ def get_posts(
         # Fetch the columns and create a list of dictionaries
         columns = results.keys()
         data = [dict(zip(columns, row)) for row in results]
-
-        return JSONResponse(content=jsonable_encoder(data), status_code=200)
+        return {'status': 'success', 'results': len(data), 'posts': jsonable_encoder(data)}
+        # return JSONResponse(content=jsonable_encoder(data), status_code=200)
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
