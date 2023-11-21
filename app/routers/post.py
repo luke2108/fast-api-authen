@@ -14,9 +14,29 @@ from sqlalchemy import text
 async def get_posts(db: Session = Depends(get_db), limit: int = 1, page: int = 1, search: str = ''):
     skip = (page - 1) * limit
 
-    posts = db.query(models.Post).group_by(models.Post.id).filter(
+    posts = db.query(models.Post, models.User).join(models.User).filter(
         models.Post.title.contains(search)).limit(limit).offset(skip).all()
-    return {'status': 'success', 'results': len(posts), 'posts': posts}
+
+    post_responses = [
+        schemas.PostResponse(
+            id=post.id,
+            title=post.title,
+            content=post.content,
+            category=post.category,
+            image=post.image,
+            user=schemas.FilteredUserResponse(
+                id=user.id,
+                name=user.name,
+                email=user.email
+            ),
+            created_at=post.created_at,
+            updated_at=post.updated_at
+        )
+        for post, user in posts
+    ]
+
+    return {'status': 'success', 'results': len(post_responses), 'posts': post_responses}
+
 
 
 @router.get('/query-string')
