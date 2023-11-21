@@ -53,6 +53,33 @@ async def get_posts(db: Session = Depends(get_db), limit: int = 1, page: int = 1
 
 
 
+# async def get_posts(db: Session = Depends(get_db)):
+#     try:
+#         raw_sql_query = """
+#             SELECT post.title, post.content, post.category, post.image, post.user_id, post.id,
+#             us.id as user_id,
+#             us.name,
+#             us.email,
+#             post.created_at,
+#             post.updated_at
+#             FROM public.posts as post
+#             JOIN public.users as us ON post.user_id = us.id
+#             LIMIT 1
+#         """
+
+#         result = db.execute(text(raw_sql_query))
+
+#         # Fetch all rows at once
+#         rows = result.fetchall()
+
+#         # Assuming you have SQLAlchemy models defined for Post and User
+#         columns = result.keys()
+#         data = [dict(zip(columns, row)) for row in rows]
+
+#         return {'status': 'success', 'results': len(data), 'posts': jsonable_encoder(data)}
+#     except Exception as e:
+#         return JSONResponse(content={"error": str(e)}, status_code=500)
+
 async def get_posts(db: Session = Depends(get_db)):
     try:
         raw_sql_query = """
@@ -67,14 +94,11 @@ async def get_posts(db: Session = Depends(get_db)):
             LIMIT 1
         """
 
-        result = db.execute(text(raw_sql_query))
-
-        # Fetch all rows at once
-        rows = result.fetchall()
+        rows = await db.fetch_all(query=raw_sql_query)
 
         # Assuming you have SQLAlchemy models defined for Post and User
-        columns = result.keys()
-        data = [dict(zip(columns, row)) for row in rows]
+        columns = rows[0].keys() if rows else []
+        data = [dict(zip(columns, row.values())) for row in rows]
 
         return {'status': 'success', 'results': len(data), 'posts': jsonable_encoder(data)}
     except Exception as e:
