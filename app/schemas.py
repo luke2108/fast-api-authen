@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 import uuid
 from pydantic import BaseModel, EmailStr, constr
 
@@ -7,10 +7,6 @@ from pydantic import BaseModel, EmailStr, constr
 class UserBaseSchema(BaseModel):
     name: str
     email: EmailStr
-    # photo: str
-
-    class Config:
-        orm_mode = True
 
 
 class CreateUserSchema(UserBaseSchema):
@@ -39,8 +35,8 @@ class PostBaseSchema(BaseModel):
     title: str
     content: str
     category: str
-    image: str | None = None
-    user_id: uuid.UUID | None = None
+    image: Optional[str] = None
+    user_id: Optional[uuid.UUID] = None
 
     class Config:
         orm_mode = True
@@ -58,11 +54,11 @@ class PostResponse(PostBaseSchema):
 
 
 class UpdatePostSchema(BaseModel):
-    title: str | None = None
-    content: str | None = None
-    category: str | None = None
-    image: str | None = None
-    user_id: uuid.UUID | None = None
+    title: Optional[str] = None
+    content: Optional[str] = None
+    category: Optional[str] = None
+    image: Optional[str] = None
+    user_id: Optional[uuid.UUID] = None
 
     class Config:
         orm_mode = True
