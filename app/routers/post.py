@@ -12,8 +12,6 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import text
 @router.get('/model', response_model=schemas.ListPostResponse)
 async def get_posts(db: Session = Depends(get_db), limit: int = 1, page: int = 1, search: str = ''):
-    # skip = (page - 1) * limit
-
     posts = db.query(models.Post).group_by(models.Post.id).all()
     return {'status': 'success', 'results': len(posts), 'posts': posts}
 
@@ -50,7 +48,7 @@ async def get_posts(db: Session = Depends(get_db)):
         return JSONResponse(content={"error": str(e)}, status_code=500)
         
 
-@router.get('/not-join')
+@router.get('/query-string-not-join')
 async def get_posts(db: Session = Depends(get_db)):
     try:
         raw_sql_query = """
@@ -65,7 +63,7 @@ async def get_posts(db: Session = Depends(get_db)):
         columns = result.keys()
         data = [dict(zip(columns, row)) for row in rows]
 
-        return {'status': 'success', 'results': len(data), 'posts': jsonable_encoder(data)}
+        return {'status': 'success', 'results': 1, 'posts': jsonable_encoder(data)}
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
