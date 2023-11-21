@@ -10,49 +10,21 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 # , user_id: str = Depends(require_user)
 from sqlalchemy import text
-@router.get('/', response_model=schemas.ListPostResponse)
+@router.get('/model', response_model=schemas.ListPostResponse)
 async def get_posts(db: Session = Depends(get_db), limit: int = 1, page: int = 1, search: str = ''):
-    skip = (page - 1) * limit
+    # skip = (page - 1) * limit
 
-    posts = db.query(models.Post).group_by(models.Post.id).filter(
-        models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    posts = db.query(models.Post).group_by(models.Post.id).all()
     return {'status': 'success', 'results': len(posts), 'posts': posts}
 
 
+@router.get('/model-not-join')
+async def get_posts(db: Session = Depends(get_db), limit: int = 1, page: int = 1, search: str = ''):
+    posts = db.query(models.Post).first()
+    return {'status': 'success', 'results': 1, 'posts': posts}
+
+
 @router.get('/query-string')
-# async def get_posts(
-#     db: Session = Depends(get_db),
-#     limit: int = 100000,
-#     page: int = 1,
-#     search: str = '',
-#     user_id: str = Depends(require_user)
-# ):
-# async def get_posts(
-#     db: Session = Depends(get_db),
-# ):
-#     try:
-#         raw_sql_query = """
-#             SELECT post.title, post.content, post.category, post.image, post.user_id, post.id,
-#             us.id,
-#             us.name,
-#             us.email,
-#             post.created_at,
-#             post.updated_at
-#             FROM public.posts as post
-#             JOIN public.users as us ON post.user_id = us.id
-#             LIMIT 1
-#         """
-        
-#         results = db.execute(raw_sql_query)
-
-#         columns = results.keys()
-#         data = [dict(zip(columns, row)) for row in results]
-#         return {'status': 'success', 'results': len(data), 'posts': jsonable_encoder(data)}
-#     except Exception as e:
-#         return JSONResponse(content={"error": str(e)}, status_code=500)
-
-
-
 async def get_posts(db: Session = Depends(get_db)):
     try:
         raw_sql_query = """
@@ -68,10 +40,8 @@ async def get_posts(db: Session = Depends(get_db)):
 
         result = db.execute(text(raw_sql_query))
 
-        # Fetch all rows at once
         rows = result.fetchall()
 
-        # Assuming you have SQLAlchemy models defined for Post and User
         columns = result.keys()
         data = [dict(zip(columns, row)) for row in rows]
 
@@ -81,39 +51,6 @@ async def get_posts(db: Session = Depends(get_db)):
         
 
 @router.get('/not-join')
-# async def get_posts(
-#     db: Session = Depends(get_db),
-#     limit: int = 100000,
-#     page: int = 1,
-#     search: str = '',
-#     user_id: str = Depends(require_user)
-# ):
-# async def get_posts(
-#     db: Session = Depends(get_db),
-# ):
-#     try:
-#         raw_sql_query = """
-#             SELECT post.title, post.content, post.category, post.image, post.user_id, post.id,
-#             us.id,
-#             us.name,
-#             us.email,
-#             post.created_at,
-#             post.updated_at
-#             FROM public.posts as post
-#             JOIN public.users as us ON post.user_id = us.id
-#             LIMIT 1
-#         """
-        
-#         results = db.execute(raw_sql_query)
-
-#         columns = results.keys()
-#         data = [dict(zip(columns, row)) for row in results]
-#         return {'status': 'success', 'results': len(data), 'posts': jsonable_encoder(data)}
-#     except Exception as e:
-#         return JSONResponse(content={"error": str(e)}, status_code=500)
-
-
-
 async def get_posts(db: Session = Depends(get_db)):
     try:
         raw_sql_query = """
@@ -123,10 +60,8 @@ async def get_posts(db: Session = Depends(get_db)):
 
         result = db.execute(text(raw_sql_query))
 
-        # Fetch all rows at once
         rows = result.fetchall()
 
-        # Assuming you have SQLAlchemy models defined for Post and User
         columns = result.keys()
         data = [dict(zip(columns, row)) for row in rows]
 
