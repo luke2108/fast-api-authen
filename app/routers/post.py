@@ -10,7 +10,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 @router.get('/', response_model=schemas.ListPostResponse)
-def get_posts(db: Session = Depends(get_db), limit: int = 1, page: int = 1, search: str = '', user_id: str = Depends(require_user)):
+async def get_posts(db: Session = Depends(get_db), limit: int = 1, page: int = 1, search: str = '', user_id: str = Depends(require_user)):
     skip = (page - 1) * limit
 
     posts = db.query(models.Post).group_by(models.Post.id).filter(
@@ -19,28 +19,26 @@ def get_posts(db: Session = Depends(get_db), limit: int = 1, page: int = 1, sear
 
 
 @router.get('/query-string')
-# def get_posts(
+# async def get_posts(
 #     db: Session = Depends(get_db),
 #     limit: int = 100000,
 #     page: int = 1,
 #     search: str = '',
 #     user_id: str = Depends(require_user)
 # ):
-def get_posts(
+async def get_posts(
     db: Session = Depends(get_db),
 ):
     try:
         raw_sql_query = """
             SELECT post.title, post.content, post.category, post.image, post.user_id, post.id,
-                json_build_object(
-                    'id', us.id,
-                    'name', us.name,
-                    'email', us.email
-                ) AS user,
-                post.created_at,
-                post.updated_at
+            us.id,
+            us.name,
+            us.email,
+            post.created_at,
+            post.updated_at
             FROM public.posts as post
-            INNER JOIN public.users as us ON post.user_id = us.id
+            JOIN public.users as us ON post.user_id = us.id
             LIMIT 1
         """
         
@@ -56,7 +54,7 @@ def get_posts(
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
 @router.post('/', status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
-def create_post(post: schemas.CreatePostSchema, db: Session = Depends(get_db), owner_id: str = Depends(require_user)):
+async def create_post(post: schemas.CreatePostSchema, db: Session = Depends(get_db), owner_id: str = Depends(require_user)):
     for n in range(1,1001):
         post.user_id = uuid.UUID(owner_id)
         new_post = models.Post(**post.dict())
@@ -67,7 +65,7 @@ def create_post(post: schemas.CreatePostSchema, db: Session = Depends(get_db), o
 
 
 @router.put('/{id}', response_model=schemas.PostResponse)
-def update_post(id: str, post: schemas.UpdatePostSchema, db: Session = Depends(get_db), user_id: str = Depends(require_user)):
+async def update_post(id: str, post: schemas.UpdatePostSchema, db: Session = Depends(get_db), user_id: str = Depends(require_user)):
     post_query = db.query(models.Post).filter(models.Post.id == id)
     updated_post = post_query.first()
 
@@ -84,7 +82,7 @@ def update_post(id: str, post: schemas.UpdatePostSchema, db: Session = Depends(g
 
 
 @router.get('/{id}', response_model=schemas.PostResponse)
-def get_post(id: UUID, db: Session = Depends(get_db), user_id: str = Depends(require_user)):
+async def get_post(id: UUID, db: Session = Depends(get_db), user_id: str = Depends(require_user)):
     post = db.query(models.Post).filter(models.Post.id == id).first()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -93,7 +91,7 @@ def get_post(id: UUID, db: Session = Depends(get_db), user_id: str = Depends(req
 
 
 @router.delete('/{id}')
-def delete_post(id: str, db: Session = Depends(get_db), user_id: str = Depends(require_user)):
+async def delete_post(id: str, db: Session = Depends(get_db), user_id: str = Depends(require_user)):
     post_query = db.query(models.Post).filter(models.Post.id == id)
     post = post_query.first()
     if not post:
