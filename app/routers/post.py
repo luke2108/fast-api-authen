@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 
 from sqlalchemy import text
 @router.get('/', response_model=schemas.ListPostResponse)
-async def get_posts(db: Session = Depends(get_db), limit: int = 1, page: int = 1, search: str = '', user_id: str = Depends(require_user)):
+async def get_posts(db: Session = Depends(get_db), limit: int = 1, page: int = 1, search: str = ''):
     skip = (page - 1) * limit
 
     posts = db.query(models.Post).group_by(models.Post.id).filter(
