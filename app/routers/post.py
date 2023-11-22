@@ -9,10 +9,13 @@ from ..database import get_db
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 # , user_id: str = Depends(require_user)
+from typing import List
 from sqlalchemy import text
-@router.get('/model', response_model=schemas.ListPostResponse)
-async def get_posts(db: Session = Depends(get_db), limit: int = 1, page: int = 1, search: str = ''):
-    posts = db.query(models.Post).group_by(models.Post.id).all()
+@router.get('/', response_model=schemas.ListPostResponse)
+async def get_posts(db: Session = Depends(get_db), limit: int = 10000, page: int = 1, search: str = '', user_id: str = Depends(require_user)):
+    skip = (page - 1) * limit
+    posts = db.query(models.Post).group_by(models.Post.id).filter(
+        models.Post.title.contains(search)).limit(limit).offset(skip).all()
     return {'status': 'success', 'results': len(posts), 'posts': posts}
 
 
@@ -76,6 +79,20 @@ async def create_post(post: schemas.CreatePostSchema, db: Session = Depends(get_
         db.commit()
         db.refresh(new_post)
     return new_post
+
+
+@router.post('/bulk', status_code=status.HTTP_201_CREATED, response_model=List[schemas.PostResponse])
+async def create_posts(posts: List[schemas.CreatePostSchema], db: Session = Depends(get_db), owner_id: str = Depends(require_user)):
+    user_id = uuid.UUID(owner_id)
+    
+    # Create a list of Post objects
+    new_posts = [models.Post(**post.dict(), user_id=user_id) for post in posts]
+
+    # Bulk insert the list of posts
+    db.bulk_save_objects(new_posts)
+    db.commit()
+
+    return new_posts
 
 
 @router.put('/{id}', response_model=schemas.PostResponse)
